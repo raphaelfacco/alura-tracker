@@ -1,52 +1,80 @@
 <template>
-    <div class="box formulario">
-        <div class="columns">
-            <div class="column is-8" role="form" aria-label="Formulario para criacao de uma noca tarefa">
-                <input 
-                type="text" 
-                class="input" 
-                placeholder="Qual tarefa você deseja iniciar?" 
-                v-model="descricao"
-                />
-            </div>
-            <div class="column">
-                <Temporizador @aoTemporizadorFinalizado="finalizarTarefa"/>
-            </div>
+  <div class="box">
+    <div class="columns">
+      <div class="column is-5" role="form" aria-label="Formulário para iniciar uma nova tarefa">
+        <input
+          class="input"
+          type="text"
+          placeholder="Qual tarefa você deseja iniciar?"
+          v-model="descricao"
+        />
+      </div>
+      <div class="column is-3">
+        <div class="select">
+          <select v-model="idProjeto">
+            <option value="">Selecione o projeto</option>
+            <option
+              :value="projeto.id"
+              v-for="projeto in projetos"
+              :key="projeto.id"
+            >
+              {{ projeto.nome }}
+            </option>
+          </select>
         </div>
+      </div>
+      <div class="column">
+        <Temporizador @aoFinalizarTarefa="salvarTarefa"/>
+      </div>
     </div>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import Temporizador from './Temporizador.vue'
+import { computed, defineComponent, ref } from "vue";
+import Temporizador from "./Temporizador.vue";
+import { useStore } from 'vuex'
+
+import { key } from '@/store'
 
 export default defineComponent({
-    name: 'Formulario',
-    emits: ['aoSalvarTarefa'],
-    components: {
-        Temporizador
-    },
-    data() {
-        return {
-            descricao: ''
-        }
-    },
-    methods: {
-        finalizarTarefa(tempoDecorrido : number) : void{
-            this.$emit('aoSalvarTarefa', {
-                duracaoEmSegundos: tempoDecorrido,
-                descricao: this.descricao
-            })
-            this.descricao = '';
-        }
+  name: "Formulario",
+  emits: ['aoSalvarTarefa'],
+  components: {
+    Temporizador,
+  },  
+  setup (props, {emit}) {
+    const store = useStore(key)
+
+    const descricao = ref("")
+    const idProjeto = ref("")
+
+    const projetos = computed(() => store.state.projeto.projetos)
+
+    const salvarTarefa = (tempoEmSegundos: number) : void => {    
+      emit('aoSalvarTarefa', {
+        duracaoEmSegundos: tempoEmSegundos,
+        descricao: descricao.value,
+        projeto: projetos.value.find(proj => proj.id == idProjeto.value)
+      })
+      descricao.value = ''
     }
 
+    return {      
+      projetos,
+      salvarTarefa,
+      descricao,
+      idProjeto
+    }
+  }
 });
 </script>
-
-<style>
-.formulario{
-    color: var(--texto-primario);
-    background-color: var(--bg-primario);
+<style scoped>
+.button {
+  margin-left: 8px;
+}
+.box {
+  background-color: var(--bg-primario);
+  color: var(--texto-primario);
 }
 </style>
