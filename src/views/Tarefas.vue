@@ -80,8 +80,7 @@ export default defineComponent({
       
     }, 
     fecharModal(){
-      this.tarefaSelecionada = null
-      this.lidarComSucesso("alterada");
+      this.tarefaSelecionada = null      
     }
   },
 
